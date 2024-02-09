@@ -1,2 +1,6 @@
-package org.wonkglorg.files.scanner;public class ScanType {
+package org.wonkglorg.files.scanner;
+
+public enum ScanType {
+    DEPTH,
+    WIDTH
 }

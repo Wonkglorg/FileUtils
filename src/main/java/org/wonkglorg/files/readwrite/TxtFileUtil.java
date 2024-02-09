@@ -1,56 +1,51 @@
-package com.wonkglorg.FortressUtility.parser;
+package org.wonkglorg.files.readwrite;
 
 import java.io.*;
-import java.nio.file.Path;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TxtFileUtil {
 
-    private final File file;
 
-    public TxtFileUtil(File file) {
+    private final File file;
+    private final Charset charset;
+
+    private TxtFileUtil(File file, Charset charset) {
         this.file = file;
+        this.charset = charset;
     }
 
-    public List<String> readAll() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+    private List<String> readAll() {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {
             List<String> lines = new ArrayList<>();
             String line;
-            line = reader.readLine();
-            while (line != null) {
+            while ((line = reader.readLine()) != null) {
                 lines.add(line);
-                line = reader.readLine();
             }
-
             return lines;
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
-    public List<String> read(int amount) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+    private List<String> read(int amount) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {
             List<String> lines = new ArrayList<>();
             int count = 0;
             String line;
-            line = reader.readLine();
-            while (line != null && amount > count) {
-                count++;
+            while ((line = reader.readLine()) != null && count < amount) {
                 lines.add(line);
-                line = reader.readLine();
+                count++;
             }
-
             return lines;
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
-    public void write(String... text) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+    private void write(WriteType type, String... text) {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, type == WriteType.APPEND), charset))) {
             for (String line : text) {
                 writer.write(line + "\n");
             }
@@ -59,55 +54,27 @@ public class TxtFileUtil {
         }
     }
 
-
-    public Path scanForPath(String path, String name) {
-        File[] files = new File(path).listFiles();
-        if (files == null) {
-            throw new RuntimeException("No files found in " + path);
-        }
-        for (File file : files) {
-            if (file.getName().equals(name)) {
-                return file.toPath();
-            }
-        }
-        throw new RuntimeException("No file found with name " + name + " in " + path);
+    public static void writeToFile(String path, WriteType type, Charset charset, String... text) {
+        new TxtFileUtil(new File(path), charset).write(type, text);
     }
 
-    public File scanForFile(String path, String name) {
-        File[] files = new File(path).listFiles();
-        if (files == null) {
-            throw new RuntimeException("No files found in " + path);
-        }
-        for (File file : files) {
-            if (file.getName().equals(name)) {
-                return file;
-            }
-        }
-        throw new RuntimeException("No file found with name " + name + " in " + path);
+    public static void writeToFile(File file, WriteType type, Charset charset, String... text) {
+        new TxtFileUtil(file, charset).write(type, text);
     }
 
-
-    public static void writeToFile(String path, String... text) {
-        new TxtFileUtil(new File(path)).write(text);
+    public static void writeToFile(String path, WriteType type, Charset charset, List<String> text) {
+        new TxtFileUtil(new File(path), charset).write(type, text.toArray(new String[0]));
     }
 
-    public static void writeToFile(File file, String... text) {
-        new TxtFileUtil(file).write(text);
+    public static List<String> readFromFile(String path, Charset charset) {
+        return new TxtFileUtil(new File(path), charset).readAll();
     }
 
-    public static void writeToFile(String path, List<String> text) {
-        new TxtFileUtil(new File(path)).write(text.toArray(new String[0]));
+    public static List<String> readFromFile(File file, Charset charset) {
+        return new TxtFileUtil(file, charset).readAll();
     }
 
-    public static void reeadFromFile(String path) {
-        new TxtFileUtil(new File(path)).readAll();
-    }
-
-    public static void reeadFromFile(File file) {
-        new TxtFileUtil(file).readAll();
-    }
-
-    public static void reeadFromFile(String path, int amount) {
-        new TxtFileUtil(new File(path)).read(amount);
+    public static List<String> readFromFile(String path, Charset charset, int amount) {
+        return new TxtFileUtil(new File(path), charset).read(amount);
     }
 }

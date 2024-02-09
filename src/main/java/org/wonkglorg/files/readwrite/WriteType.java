@@ -1,2 +1,6 @@
-package org.wonkglorg.files.readwrite;public class WriteType {
+package org.wonkglorg.files.readwrite;
+
+public enum WriteType {
+    APPEND,
+    OVERWRITE
 }
